@@ -1,0 +1,68 @@
+# for pong 
+GET http://localhost:8080/v1/ping/ HTTP/1.1
+GET http://localhost:8080/v1/ping/controller HTTP/1.1
+GET http://localhost:8080/v1/ping/usecase HTTP/1.1
+GET http://localhost:8080/v1/ping/repository HTTP/1.1
+
+
+### for member
+GET http://localhost:8080/v1/member HTTP/1.1
+### member/uuid/:uuid
+GET http://localhost:8080/v1/member/uuid/53aa1315-1f09-4454-8060-0a4213362c93 HTTP/1.1
+### member/email/:email
+GET http://localhost:8080/v1/member/email/shamirhusein+1@gmail.com HTTP/1.1
+POST http://localhost:8080/v1/member HTTP/1.1
+content-type: application/json
+User-Agent: rest-client
+Accept: */*
+
+{
+    "email": "shamirhusein+3@gmail.com",
+    "firstname": "Shamir 3", 
+    "lastname": "Husein 3"
+}
+
+
+# for invitation status
+GET http://localhost:8080/v1/invitation-status HTTP/1.1
+GET http://localhost:8080/v1/invitation-status/8f00b0d2-6da5-4c1a-8c99-e294f6541a16 HTTP/1.1
+POST http://localhost:8080/v1/invitation-status HTTP/1.1
+content-type: application/json
+User-Agent: rest-client
+Accept: */*
+
+{
+    "name": "shamirhusein@gmail.com"
+}
+
+# for gathering type
+GET http://localhost:8080/v1/gathering/type HTTP/1.1
+GET http://localhost:8080/v1/gathering/type/99ef6d74-f8c2-4663-9105-76aaec388b4c HTTP/1.1
+POST http://localhost:8080/v1/gathering/type HTTP/1.1
+content-type: application/json
+User-Agent: rest-client
+Accept: */*
+
+{
+    "name": "Hybrid"
+}
+
+# for gathering 
+POST http://localhost:8080/v1/gathering HTTP/1.1
+Content-Type: application/json
+User-Agent: rest-client 
+Accept: */*
+
+{
+    "attendees":[
+        "2534b58e-a1ea-4ef9-9f4e-dd2a99579665", 
+        "31a64c72-c676-4a1e-8941-730d8d86ded1",
+        "53aa1315-1f09-4454-8060-0a4213362c93",
+        "6a06b18a-7ba4-463c-a8f1-06249b1d9406"
+    ], 
+    "name": "Gathering A", 
+    "schedule_at": "2023-09-10T07:20:30", 
+    "location": "jakarta", 
+    "creator": "6a06b18a-7ba4-463c-a8f1-06249b1d9406", 
+    "type": "offline"
+}
