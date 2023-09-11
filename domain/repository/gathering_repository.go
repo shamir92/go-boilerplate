@@ -2,7 +2,9 @@ package repository
 
 import (
 	"database/sql"
+	"log"
 	entities "simple-invitation/domain/entities"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -17,17 +19,23 @@ type IGatheringRepository interface {
 	// Create a new member.
 	FetchDBReader() *sql.DB
 	FetchDBWriter() *sql.DB
-	// CreateNewGathering(
-	// 	attendees []uuid.UUID,
-	// 	creator uuid.UUID,
-	// 	gatheringType string,
-	// 	name string,
-	// 	location string,
-	// 	scheduled_at string,
-	// ) (*entities.Gathering, error)
+	// For Gathering
+	CreateNewGathering(
+		attendees []*entities.Member,
+		creator *entities.Member,
+		gatheringTypeName string,
+		gatheringName string,
+		gatheringLocation string,
+		scheduled_at time.Time,
+	) (*entities.Gathering, error)
+
+	// For Gathering Types
 	FetchGatheringTypes() ([]*entities.GatheringType, error)
 	FetchGatheringTypeById(idGatheringType uuid.UUID) (*entities.GatheringType, error)
+	FetchGatheringTypeByName(gatheringTypeName string) (*entities.GatheringType, error)
 	StoreNewGatheringType(name string) (*entities.GatheringType, error)
+
+	// For Invitation
 	FetchInvitationStatuses() ([]*entities.InvitationStatus, error)
 	FetchInvitationStatusById(invitationStatusId uuid.UUID) (*entities.InvitationStatus, error)
 	StoreInvitationStatus(name string) (*entities.InvitationStatus, error)
@@ -48,67 +56,75 @@ func (gr *gatheringRepository) FetchDBReader() *sql.DB {
 	return gr.dbReader
 }
 
-// func (gr *gatheringRepository) CreateNewGathering(
-// 	attendees []uuid.UUID,
-// 	creator uuid.UUID,
-// 	gatheringType string,
-// 	name string,
-// 	location string,
-// 	scheduled_at string,
-// ) (*entities.Gathering, error) {
+func (gr *gatheringRepository) CreateNewGathering(
+	attendees []*entities.Member,
+	creator *entities.Member,
+	gatheringTypeName string,
+	gatheringName string,
+	gatheringLocation string,
+	scheduled_at time.Time,
+) (*entities.Gathering, error) {
+	log.Println("nyampai repository")
 
-// 	// stmt, err := gr.dbWriter.Prepare("insert into ")
-// 	// stmt, err := gr.dbWriter.Prepare("INSERT INTO gathering (id, creator, gathering_type, schedule_at, name, location) VALUES (?,?, ?, ?)")
-// 	// if err != nil {
-// 	// 	return nil, err
-// 	// }
+	log.Println(attendees[0].Id)
+	log.Println(creator.Id)
+	err := gr.gathering.CheckAttendeesIsNotNil(attendees)
+	if err != nil {
+		return nil, err
+	}
 
-// 	// idGathering := uuid.New()
+	err = gr.gathering.CheckCreatorIsNotNil(creator)
+	if err != nil {
+		return nil, err
+	}
 
-// 	// // Execute the prepared statement.
-// 	// _, err = stmt.Exec(idGathering.String(), email, firstname, lastname)
-// 	// if err != nil {
-// 	// 	return nil, err
-// 	// }
+	gatheringType, err := gr.FetchGatheringTypeByName(gatheringTypeName)
+	if err != nil {
+		return nil, nil
+	}
 
-// 	// // Close the prepared statement.
-// 	// err = stmt.Close()
-// 	// if err != nil {
-// 	// 	return nil, err
-// 	// }
-// 	return nil, nil
-// }
+	stmt, err := gr.dbWriter.Prepare("insert into gathering (id, creator,gathering_type_id, schedule_at, name, location) values (?,?,?,?,?,?)")
+	if err != nil {
+		return nil, err
+	}
 
-// func (gr *gatheringRepository) createGathering() (*entities.Gathering, error) {
+	idGathering := uuid.New()
+	// Execute the prepared statement.
+	_, err = stmt.Exec(idGathering, creator.Id, gatheringType.Id, scheduled_at, gatheringName, gatheringLocation)
+	if err != nil {
+		return nil, err
+	}
 
-// 	// stmt, err := gr.dbWriter.Prepare("insert into gathering (id, creato)")
-// 	return nil, nil
-// }
+	return &entities.Gathering{
+		Id:         idGathering,
+		Creator:    creator,
+		Attendees:  attendees,
+		Type:       gatheringType,
+		ScheduleAt: scheduled_at,
+		Name:       gatheringName,
+		Location:   gatheringLocation,
+	}, nil
+}
 
-// func (gr *gatheringRepository) getGatheringTypeByName(gatheringTypeName string) (*entities.GatheringType, error) {
+func (gr *gatheringRepository) FetchGatheringTypeByName(gatheringTypeName string) (*entities.GatheringType, error) {
+	var id uuid.UUID
+	var name string
+	var created_at, deleted_at, updated_at sql.NullTime
+	err := gr.dbReader.QueryRow("select id, name, created_at, updated_at, deleted_at from gathering_type where name = ?", gatheringTypeName).Scan(
+		&id, &name, &created_at, &updated_at, &deleted_at)
 
-// 	var id, name string
-// 	var created_at, updated_at, deleted_at sql.NullTime
-// 	err := gr.dbReader.QueryRow("SELECT id, name, created_at, updated_at, deleted_at FROM gathering_type WHERE name=?", gatheringTypeName).Scan(
-// 		&id, &name, &created_at, &updated_at, &deleted_at)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	if err != nil {
+		return nil, err
+	}
 
-// 	gatheringTypeId, err := uuid.Parse(id)
-
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	return &entities.GatheringType{
-// 		Id:        gatheringTypeId,
-// 		Name:      name,
-// 		CreatedAt: created_at,
-// 		UpdatedAt: updated_at,
-// 		DeletedAt: deleted_at,
-// 	}, nil
-// }
+	return &entities.GatheringType{
+		Id:        id,
+		Name:      name,
+		CreatedAt: created_at,
+		UpdatedAt: updated_at,
+		DeletedAt: deleted_at,
+	}, nil
+}
 
 // / For gathering type
 func (gr *gatheringRepository) FetchGatheringTypes() ([]*entities.GatheringType, error) {

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 	usecase "simple-invitation/domain/usecase"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -14,7 +15,7 @@ type gatheringController struct {
 }
 
 type IGatheringController interface {
-	// CreateNewGathering(c *gin.Context)
+	CreateNewGathering(c *gin.Context)
 	StoreNewGatheringType(c *gin.Context)
 	FetchGatheringTypes(c *gin.Context)
 	FetchGatheringTypeById(c *gin.Context)
@@ -47,12 +48,36 @@ type gatheringTypeResponseData struct {
 }
 
 type gatheringRequestData struct {
-	Name          string      `json:"name"`
-	ScheduleAt    string      `json:"schedule_at"` // unix time in seconds,
-	Location      string      `json:"location"`
-	Creator       uuid.UUID   `json:"creator"`
-	GatheringType string      `json:"string"`
-	Attendees     []uuid.UUID `json:"attendees"`
+	Name          string      `json:"name" binding:"required"`
+	ScheduleAt    string      `json:"schedule_at" binding:"required"` // unix time in seconds,
+	Location      string      `json:"location" binding:"required"`
+	Creator       uuid.UUID   `json:"creator" binding:"required"`
+	GatheringType string      `json:"type" binding:"required"`
+	Attendees     []uuid.UUID `json:"attendees" binding:"required"`
+}
+
+func (gc *gatheringController) CreateNewGathering(c *gin.Context) {
+	var reqData gatheringRequestData
+	if err := c.BindJSON(&reqData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	scheduleAt, err := time.Parse("2006-01-02T15:04:05", reqData.ScheduleAt)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	data, err := gc.gatheringUsecase.CreateNewGathering(reqData.Attendees, reqData.Creator, reqData.GatheringType, reqData.Name, reqData.Location, scheduleAt)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": data,
+	})
+
 }
 
 func (gc *gatheringController) FetchGatheringTypes(c *gin.Context) {

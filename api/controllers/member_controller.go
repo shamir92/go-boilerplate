@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"database/sql"
-	"log"
 	"net/http"
 	usecase "simple-invitation/domain/usecase"
 
@@ -73,7 +72,6 @@ func (mc *memberController) FetchMemberById(c *gin.Context) {
 		c.JSON(400, gin.H{"msg": err})
 		return
 	}
-	log.Println(memberId.Id)
 	data, err := mc.memberUsecase.FetchMemberById(memberId.Id)
 
 	if err != nil {

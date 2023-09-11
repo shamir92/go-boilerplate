@@ -42,7 +42,7 @@ func PublicRoute(router *gin.Engine, dbReader *sql.DB, dbWriter *sql.DB) {
 		v1.GET("/gathering/type/:uuid", gathering.FetchGatheringTypeById)
 		v1.POST("/gathering/type", gathering.StoreNewGatheringType)
 
-		// v1.POST("/gathering", gathering.CreateNewGathering)
+		v1.POST("/gathering", gathering.CreateNewGathering)
 	}
 
 }

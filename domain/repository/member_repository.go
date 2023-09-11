@@ -2,8 +2,10 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	entities "simple-invitation/domain/entities"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -18,7 +20,8 @@ type IMemberRepository interface {
 	// Create a new member.
 	FetchDBReader() *sql.DB
 	FetchDBWriter() *sql.DB
-	FetchMemberById(idMember string) (*entities.Member, error)
+	FetchMemberByListId(ids []uuid.UUID) ([]*entities.Member, error)
+	FetchMemberById(idMember uuid.UUID) (*entities.Member, error)
 	FetchMemberByEmail(email string) (*entities.Member, error)
 	StoreNewMeber(email string, firstname string, lastname string) error
 	FetchAll() ([]*entities.Member, error)
@@ -67,7 +70,7 @@ func (mr *memberRepository) FetchMemberByEmail(email string) (*entities.Member, 
 	return &member, nil
 }
 
-func (mr *memberRepository) FetchMemberById(idMember string) (*entities.Member, error) {
+func (mr *memberRepository) FetchMemberById(idMember uuid.UUID) (*entities.Member, error) {
 	var member entities.Member
 	var id, firstname, lastname, memberemail string
 	var created_at, updated_at, deleted_at sql.NullTime
@@ -135,4 +138,39 @@ func (mr *memberRepository) StoreNewMeber(email string, firstname string, lastna
 		return err
 	}
 	return nil
+}
+
+func (mr *memberRepository) FetchMemberByListId(ids []uuid.UUID) ([]*entities.Member, error) {
+
+	var uuidString []string
+	for _, value := range ids {
+		uuidString = append(uuidString, value.String())
+	}
+
+	sqlInquiry := strings.Join(uuidString, "\",\"")
+	sqlBuilder := fmt.Sprintf("SELECT id, firstname, lastname, email,created_at, updated_at, deleted_at FROM member where id in (\"%s\")", sqlInquiry)
+	var members []*entities.Member
+	result, err := mr.dbReader.Query(sqlBuilder)
+	if err != nil {
+		return nil, err
+	}
+	for result.Next() {
+		var id, firstname, lastname, memberemail string
+		var created_at, updated_at, deleted_at sql.NullTime
+		result.Scan(&id, &firstname, &lastname, &memberemail, &created_at, &updated_at, &deleted_at)
+		members = append(members, &entities.Member{
+			Id:        id,
+			Firstname: firstname,
+			Lastname:  lastname,
+			Email:     memberemail,
+			CreatedAt: created_at,
+			UpdatedAt: updated_at,
+			DeletedAt: deleted_at,
+		})
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return members, nil
 }
