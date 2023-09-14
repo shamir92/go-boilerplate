@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
+	"simple-invitation/configuration"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -18,15 +18,15 @@ type IMysqlWriter interface {
 	Close() error
 }
 
-func NewMysqlWriter() *mysqlWriter {
+func NewMysqlWriter(configDB configuration.IDatabaseWriter) *mysqlWriter {
 
 	dsn := fmt.Sprintf("%s:%s@%s(%s:%s)/%s?parseTime=true",
-		strings.TrimSpace(os.Getenv("DB_USER_WRITER")),
-		strings.TrimSpace(os.Getenv("DB_PASSWORD_WRITER")),
-		strings.TrimSpace(os.Getenv("DB_PROTOCOL_WRITER")),
-		strings.TrimSpace(os.Getenv("DB_HOST_WRITER")),
-		strings.TrimSpace(os.Getenv("DB_PORT_WRITER")),
-		strings.TrimSpace(os.Getenv("DB_NAME_WRITER")),
+		strings.TrimSpace(configDB.GetUser()),
+		strings.TrimSpace(configDB.GetPassword()),
+		strings.TrimSpace(configDB.GetProtocol()),
+		strings.TrimSpace(configDB.GetHost()),
+		strings.TrimSpace(configDB.GetPort()),
+		strings.TrimSpace(configDB.GetName()),
 	)
 	log.Println("dsnWriter")
 	log.Println(dsn)

@@ -23,3 +23,17 @@ run-local-db-up:
 
 run-local-db-down: 
 	docker compose -f tools/local/database.yml down
+
+
+### please kill your local 8080 port first and go main. 
+run-smoke-test-local: 
+	k6 run './tools/qa/smoke/ping.js'
+	k6 run './tools/qa/smoke/gathering.js'
+
+run-load-local: 
+	k6 run './tools/qa/load/ping.js'
+	k6 run './tools/qa/load/ping_controller.js'
+	k6 run './tools/qa/load/ping_usecase.js'
+	k6 run './tools/qa/load/ping_repository.js'
+
+	

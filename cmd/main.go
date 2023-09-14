@@ -2,6 +2,7 @@ package main
 
 import (
 	"simple-invitation/api/routes"
+	configuration "simple-invitation/configuration"
 	reader "simple-invitation/internal/database/reader"
 	writer "simple-invitation/internal/database/writer"
 
@@ -10,13 +11,15 @@ import (
 
 func main() {
 	r := gin.Default()
-	reader := reader.NewMysqlReader()
-	writer := writer.NewMysqlWriter()
-	routes.PublicRoute(r, reader.GetDB(), writer.GetDB())
 
-	// register repository
-	// memberRepository := repository.NewMemberRepository(reader.GetDB(), writer.GetDB())
-	// log.Println(memberRepository)
+	// For configuration
+	var dbReaderConfiguration configuration.IDatabaseReader = configuration.NewDatabaseReader()
+	var dbWriterConfiguration configuration.IDatabaseWriter = configuration.NewDatabaseWriter()
+
+	// For External Interfaces
+	reader := reader.NewMysqlReader(dbReaderConfiguration)
+	writer := writer.NewMysqlWriter(dbWriterConfiguration)
+	routes.PublicRoute(r, reader.GetDB(), writer.GetDB())
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

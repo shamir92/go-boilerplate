@@ -1,0 +1,102 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  REGISTRY_HOST: registry.gitlab.com
+  IMAGE_NAME: $REGISTRY_HOST/hol-jsp/hol/core-squad/clinic-api
+  BUILD_NUMBER: build-$BRANCH_NAME-$CI_PIPELINE_ID
+  BUILD_ENV: $CI_COMMIT_REF_NAME # develop, master, staging
+  EKS_DEPLOY_IMAGE: registry.gitlab.com/hol-jsp/hol/premium-content-squad/newsletter/eks:latest
+
+##### Deploy Dev ######
+build_develop:
+  stage: build
+  environment: Development
+  only:
+    refs:
+      - develop
+    changes:
+      - "**/*"
+      - .gitlab-ci.yml
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $REGISTRY_HOST
+    - docker build --tag $IMAGE_NAME:$BUILD_NUMBER .
+    - docker push $IMAGE_NAME:$BUILD_NUMBER
+
+deploy_develop:
+  stage: deploy
+  image: $EKS_DEPLOY_IMAGE
+  tags:
+    - core
+  only:
+    refs:
+      - develop
+    changes:
+      - "**/*"
+      - .gitlab-ci.yml
+  variables:
+    EKS_CLUSTER: hol-dev
+    EKS_REGION: ap-southeast-3
+    K8S_NAMESPACE: core-clinic-api-develop
+    deployment: clinic-api
+  script:
+    - aws eks update-kubeconfig --region $EKS_REGION --name $EKS_CLUSTER
+    - kubectl config set-context --current --namespace=$K8S_NAMESPACE
+    - kubectl set image deployment/clinic-api clinic-api=$IMAGE_NAME:$BUILD_NUMBER
+    - kubectl rollout restart deployment $deployment
+
+##### Deploy Dev ######
+build_master:
+  stage: build
+  environment: Development
+  only:
+    refs:
+      - main
+    changes:
+      - "**/*"
+      - .gitlab-ci.yml
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $REGISTRY_HOST
+    - docker build --tag $IMAGE_NAME:$BUILD_NUMBER --tag $IMAGE_NAME:$BUILD_NUMBER --tag $IMAGE_NAME:main-latest .
+    - docker push $IMAGE_NAME:$BUILD_NUMBER
+    - docker push $IMAGE_NAME:main-latest
+
+##### Build Production ######
+build_production:
+  stage: build
+  environment: Production
+  only:
+    refs:
+      - tags
+    changes:
+      - "**/*"
+      - .gitlab-ci.yml
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $REGISTRY_HOST
+    - docker build --tag $IMAGE_NAME:$BUILD_NUMBER --tag $IMAGE_NAME:$CI_COMMIT_TAG .
+    - docker push $IMAGE_NAME:$CI_COMMIT_TAG
+
+deploy_production:
+  stage: deploy
+  image: $EKS_DEPLOY_IMAGE
+  tags: 
+    - core
+  only:
+    refs:
+      - tags
+    changes:
+      - "**/*"
+      - .gitlab-ci.yml
+  when: manual
+  variables:
+    EKS_CLUSTER: hol-production
+    EKS_REGION: ap-southeast-3
+    K8S_NAMESPACE: core-clinic-api
+    deployment: clinic-api
+  script:
+    - aws eks update-kubeconfig --region $EKS_REGION --name $EKS_CLUSTER
+    - kubectl config set-context --current --namespace=$K8S_NAMESPACE
+    - kubectl set image deployment/clinic-api clinic-api=$IMAGE_NAME:$CI_COMMIT_TAG
+    - kubectl rollout restart deployment $deployment
+

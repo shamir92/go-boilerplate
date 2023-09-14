@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
+	"simple-invitation/configuration"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -18,17 +18,15 @@ type IMysqlReader interface {
 	Close() error
 }
 
-func NewMysqlReader() *mysqlReader {
+func NewMysqlReader(configDB configuration.IDatabaseReader) *mysqlReader {
 	dsn := fmt.Sprintf("%s:%s@%s(%s:%s)/%s?parseTime=true",
-		strings.TrimSpace(os.Getenv("DB_USER_READER")),
-		strings.TrimSpace(os.Getenv("DB_PASSWORD_READER")),
-		strings.TrimSpace(os.Getenv("DB_PROTOCOL_READER")),
-		strings.TrimSpace(os.Getenv("DB_HOST_READER")),
-		strings.TrimSpace(os.Getenv("DB_PORT_READER")),
-		strings.TrimSpace(os.Getenv("DB_NAME_READER")),
+		strings.TrimSpace(configDB.GetUser()),
+		strings.TrimSpace(configDB.GetPassword()),
+		strings.TrimSpace(configDB.GetProtocol()),
+		strings.TrimSpace(configDB.GetHost()),
+		strings.TrimSpace(configDB.GetPort()),
+		strings.TrimSpace(configDB.GetName()),
 	)
-	log.Println("dsnReader")
-	log.Println(dsn)
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {

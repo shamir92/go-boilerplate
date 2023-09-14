@@ -8,19 +8,15 @@ export const options = {
 
 export default () => {
     const urlRes = http.get('http://localhost:8080/v1/ping/');
-    console.log(urlRes)
     sleep(1);
 
     const urlRes1 = http.get('http://localhost:8080/v1/ping/controller');
-    console.log(urlRes1)
     sleep(1);
 
     const urlRes2 = http.get('http://localhost:8080/v1/ping/usecase');
-    console.log(urlRes2)
     sleep(1);
 
     const urlRes3 = http.get("http://localhost:8080/v1/ping/repository")
-    console.log(urlRes3)
     sleep(1)
 
   // MORE STEPS
