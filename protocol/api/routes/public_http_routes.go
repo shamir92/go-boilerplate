@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
-	"simple-invitation/api/controllers"
+	"simple-invitation/protocol/api/controllers"
 
 	"github.com/gin-gonic/gin"
 )

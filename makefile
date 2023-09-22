@@ -16,7 +16,7 @@ export DB_NAME_READER=simpleinvitation
 
 
 run-local-config: 
-	go run cmd/main.go
+	go run protocol/api/cmd/main.go
 
 run-local-db-up: 
 	docker compose -f tools/local/database.yml up

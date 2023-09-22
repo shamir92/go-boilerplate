@@ -1,10 +1,10 @@
 package main
 
 import (
-	"simple-invitation/api/routes"
 	configuration "simple-invitation/configuration"
 	reader "simple-invitation/internal/database/reader"
 	writer "simple-invitation/internal/database/writer"
+	"simple-invitation/protocol/api/routes"
 
 	"github.com/gin-gonic/gin"
 )
