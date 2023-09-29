@@ -1,0 +1,36 @@
+syntax = "proto3";
+package go_proto;
+
+// ini masih agak bingung
+option go_package = "protocol/grpc/presenters/compiled/";
+
+message Member {
+    string id = 1;
+    string firstname = 2 ;
+    string lastname = 3;
+    string email = 4;
+}
+
+message MemberRequest {
+    Member member = 1;
+}
+
+message MemberResponse {
+    repeated Member member = 1;
+}
+
+
+service MemberService{
+    // rpc CreateMember(MemberRequest) returns (MemberResponse);
+    rpc FetchAll(MemberRequest) returns (MemberResponse);
+    // rpc UpdateMember(MemberRequest) returns (MemberResponse);
+    // rpc DeleteMember(MemberRequest) returns (MemberResponse);
+}
+
+
+// type IMemberController interface {
+// 	FetchAll(c *gin.Context)
+// 	StoreNewMeber(c *gin.Context)
+// 	FetchMemberByEmail(c *gin.Context)
+// 	FetchMemberById(c *gin.Context)
+// }

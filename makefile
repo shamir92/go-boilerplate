@@ -14,8 +14,16 @@ export DB_PROTOCOL_READER=tcp
 export DB_PORT_READER=3306 
 export DB_NAME_READER=simpleinvitation 
 
+export GRPC_GO_LOG_VERBOSITY_LEVEL=99
+export GRPC_GO_LOG_SEVERITY_LEVEL=info
 
-run-local-config: 
+compile-protoc: 
+	protoc --go_out=. --go-grpc_out=. protocol/grpc/presenters/proto/*.proto
+
+run-local-grpc: 
+	go run protocol/grpc/cmd/main.go	
+
+run-local-http: 
 	go run protocol/api/cmd/main.go
 
 run-local-db-up: 
@@ -29,6 +37,9 @@ run-local-db-down:
 run-smoke-test-local: 
 	k6 run './tools/qa/smoke/ping.js'
 	k6 run './tools/qa/smoke/gathering.js'
+	go run protocol/cli/cmd/main.go pc 
+	go run protocol/cli/cmd/main.go pu 
+	go run protocol/cli/cmd/main.go pr
 
 run-load-local: 
 	k6 run './tools/qa/load/ping.js'
@@ -36,4 +47,4 @@ run-load-local:
 	k6 run './tools/qa/load/ping_usecase.js'
 	k6 run './tools/qa/load/ping_repository.js'
 
-	
+

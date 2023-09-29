@@ -1,27 +1,39 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net"
 	configuration "simple-invitation/configuration"
 	reader "simple-invitation/internal/database/reader"
 	writer "simple-invitation/internal/database/writer"
+	"simple-invitation/protocol/grpc/controllers"
 
-	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc"
 )
 
 func main() {
-	r := gin.Default()
+	list, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		fmt.Println("TCP Not Up")
+	}
+
+	server := grpc.NewServer()
 
 	// For configuration
 	var dbReaderConfiguration configuration.IDatabaseReader = configuration.NewDatabaseReader()
 	var dbWriterConfiguration configuration.IDatabaseWriter = configuration.NewDatabaseWriter()
-
 	// For External Interfaces
 	reader := reader.NewMysqlReader(dbReaderConfiguration)
 	writer := writer.NewMysqlWriter(dbWriterConfiguration)
-	log.Println(reader, writer)
+
+	var memberController controllers.IMemberController = controllers.NewMemberController(reader.GetDB(), writer.GetDB(), server)
+	log.Println(memberController)
+	err = server.Serve(list)
+	if err != nil {
+		fmt.Println("Unexpected Error", err)
+	}
 
 	// routes.PublicRoute(r, reader.GetDB(), writer.GetDB())
 
-	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

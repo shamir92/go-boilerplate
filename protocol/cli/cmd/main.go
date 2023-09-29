@@ -19,10 +19,6 @@ func main() {
 				Category: "ping",
 				Usage:    "Ping via controller interface",
 				Action:   pingCommands.GetPingController,
-				OnUsageError: func(cCtx *cli.Context, err error, isSubcommand bool) error {
-					fmt.Fprintf(cCtx.App.Writer, "for shame\n")
-					return err
-				},
 			},
 			&cli.Command{
 				Name:     "ping-usecase",
@@ -41,10 +37,6 @@ func main() {
 				Category: "ping",
 				Usage:    "Ping via repository interface",
 				Action:   pingCommands.GetPingRepository,
-				OnUsageError: func(cCtx *cli.Context, err error, isSubcommand bool) error {
-					fmt.Fprintf(cCtx.App.Writer, "for shame\n")
-					return err
-				},
 			},
 		},
 	}
