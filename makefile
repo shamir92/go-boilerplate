@@ -17,23 +17,30 @@ export DB_NAME_READER=simpleinvitation
 export GRPC_GO_LOG_VERBOSITY_LEVEL=99
 export GRPC_GO_LOG_SEVERITY_LEVEL=info
 
-compile-protoc: 
-	protoc --go_out=. --go-grpc_out=. protocol/grpc/presenters/proto/*.proto
-
-run-local-grpc: 
-	go run protocol/grpc/cmd/main.go	
-
-run-local-http: 
-	go run protocol/api/cmd/main.go
-
+## setup 
 run-local-db-up: 
 	docker compose -f tools/local/database.yml up
 
 run-local-db-down: 
 	docker compose -f tools/local/database.yml down
 
+## for GRPC 
+compile-protoc: 
+	protoc --go_out=. --go-grpc_out=. protocol/grpc/presenters/proto/*.proto
 
-### please kill your local 8080 port first and go main. 
+## for run protocol
+run-local-grpc: 
+	go run protocol/grpc/cmd/main.go	
+
+run-local-http: 
+	go run protocol/api/cmd/main.go
+
+## for run unit test 
+run-local-unittest: 
+	go test -v -coverprofile tests/coverage/cover.out ./...
+	go tool cover -html tests/coverage/cover.out -o tests/coverage/cover.html
+	
+## for smoke test and load 
 run-smoke-test-local: 
 	k6 run './tools/qa/smoke/ping.js'
 	k6 run './tools/qa/smoke/gathering.js'

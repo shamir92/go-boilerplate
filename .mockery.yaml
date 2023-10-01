@@ -1,2 +1,2 @@
-output: tests
+output: tests/mocks
 keeptree: true
